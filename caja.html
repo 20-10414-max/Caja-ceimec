@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Caja · CEIMEC</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,100..125,400..900&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --papel:#EDEFF3;--papel-alto:#F8F9FB;--tinta:#171A2B;--acero:#6C7488;
+  --linea:#CCD2DC;--azul:#2A2C68;--cielo:#4FC6E8;--ambar:#D99A22;--rojo:#B3261E;--verde:#1D6B3F;
+  --display:"Archivo",system-ui,sans-serif;--texto:"IBM Plex Sans",system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--papel);color:var(--tinta);font-family:var(--texto);font-size:16px;line-height:1.5}
+.wrap{width:min(100% - 2rem,1180px);margin-inline:auto;padding:1.75rem 0 3rem}
+h1{font-family:var(--display);font-weight:900;font-stretch:118%;letter-spacing:-.03em;font-size:2rem;line-height:1;margin:0}
+h2{font-family:var(--display);font-weight:800;font-stretch:110%;font-size:1.1rem;letter-spacing:-.01em;margin:0 0 .75rem}
+:focus-visible{outline:3px solid var(--azul);outline-offset:2px}
+
+.top{display:flex;flex-wrap:wrap;gap:1.5rem;align-items:end;justify-content:space-between;
+  padding-bottom:1rem;border-bottom:1px solid var(--linea);margin-bottom:1.5rem}
+.top .sub{color:var(--acero);font-size:.9rem;margin:.25rem 0 0}
+.meta{display:flex;gap:1.5rem;align-items:end;flex-wrap:wrap}
+label{display:block;font-size:.78rem;color:var(--acero);margin-bottom:.25rem}
+select,input{font:inherit;color:var(--tinta);background:var(--papel-alto);
+  border:1.5px solid var(--linea);border-radius:3px;padding:.5rem .6rem}
+select:focus,input:focus{border-color:var(--azul);outline:none}
+input[type=number]{text-align:right;font-variant-numeric:tabular-nums}
+.tasa{font-variant-numeric:tabular-nums;font-weight:600}
+.tasa small{display:block;font-weight:400;font-size:.78rem;color:var(--acero)}
+
+table{width:100%;border-collapse:collapse;background:var(--papel-alto);border:1px solid var(--linea)}
+th{text-align:left;font-size:.75rem;font-weight:500;color:var(--acero);padding:.5rem .6rem;
+  border-bottom:1px solid var(--linea);white-space:nowrap}
+td{padding:.35rem .6rem;border-bottom:1px solid var(--linea)}
+td.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+tr:last-child td{border-bottom:none}
+.pi{width:100%;border:none;background:transparent;padding:.4rem 0}
+.pc{width:7rem;border:none;background:transparent;padding:.4rem 0}
+.pi:focus,.pc:focus{outline:none;border-bottom:2px solid var(--azul)}
+.bajo{color:var(--rojo);font-weight:600}
+.seccion{margin-top:1.75rem}
+
+.totales{display:grid;grid-template-columns:1fr auto;gap:.35rem 1.5rem;margin-top:1rem;
+  padding:1rem 1.15rem;background:var(--papel-alto);border:1.5px solid var(--tinta);border-radius:3px}
+.totales dt{color:var(--acero);font-size:.92rem}
+.totales dd{margin:0;text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+.totales .grande{font-family:var(--display);font-weight:900;font-stretch:115%;font-size:1.5rem;letter-spacing:-.02em}
+.totales .falta{color:var(--rojo)}
+.totales .vuelto{color:var(--verde)}
+
+.acciones{display:flex;gap:.75rem;margin-top:1.5rem;flex-wrap:wrap;align-items:center}
+.btn{padding:.7rem 1.5rem;border-radius:3px;border:1.5px solid var(--azul);background:var(--azul);
+  color:#fff;font:inherit;font-weight:600;cursor:pointer}
+.btn:hover:not(:disabled){background:var(--cielo);border-color:var(--cielo);color:var(--azul)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.sec{background:transparent;color:var(--tinta);border-color:var(--linea)}
+.btn.sec:hover{background:var(--tinta);color:#fff;border-color:var(--tinta)}
+.pista{font-size:.85rem;color:var(--acero)}
+
+.aviso{margin-top:1.25rem;padding:.85rem 1.1rem;border-radius:3px;border-left:4px solid;border-radius:0;font-size:.95rem}
+.aviso.err{background:#FBEAE9;border-color:var(--rojo);color:#6E1712}
+.aviso.ok{background:#E6F2EA;border-color:var(--verde);color:#12492B}
+.aviso.info{background:#FBF1DE;border-color:var(--ambar);color:#6B4A0C}
+[hidden]{display:none !important}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="top">
+    <div>
+      <h1>Caja</h1>
+      <p class="sub">Centro de Estudiantes de Ingeniería Mecánica · <a href="index.html">Ver vendedores del mes</a></p>
+    </div>
+    <div class="meta">
+      <div>
+        <label for="vendedor">Vendedor</label>
+        <select id="vendedor"><option value="">Cargando…</option></select>
+      </div>
+      <div class="tasa" id="tasa">—<small>Tasa del día</small></div>
+    </div>
+  </div>
+
+  <div id="arranque" class="aviso info">Conectando con la hoja de cálculo…</div>
+
+  <div id="app" hidden>
+    <section>
+      <h2>Productos</h2>
+      <table>
+        <thead><tr>
+          <th style="width:34%">Producto</th><th style="width:9rem">Cantidad</th>
+          <th class="n">Precio Bs</th><th class="n">Total Bs</th><th class="n">Stock queda</th>
+        </tr></thead>
+        <tbody id="lineas"></tbody>
+      </table>
+      <p class="pista" style="margin:.6rem 0 0">Escribe las primeras letras del producto y elige de la lista. Enter salta al siguiente campo.</p>
+    </section>
+
+    <section class="seccion">
+      <h2>Pago</h2>
+      <table>
+        <thead><tr>
+          <th style="width:34%">Método</th><th style="width:12rem">Monto Bs</th><th>Referencia</th>
+        </tr></thead>
+        <tbody id="pagos"></tbody>
+      </table>
+
+      <dl class="totales">
+        <dt>Monto total</dt><dd class="grande" id="t-total">Bs 0,00</dd>
+        <dt>Total cancelado</dt><dd id="t-cancelado">Bs 0,00</dd>
+        <dt id="t-restante-lbl">Por cancelar</dt><dd id="t-restante">Bs 0,00</dd>
+        <dt>Equivalente en dólares</dt><dd id="t-usd">$0,00</dd>
+      </dl>
+    </section>
+
+    <div class="acciones">
+      <button class="btn" id="registrar">Registrar venta</button>
+      <button class="btn sec" id="limpiar">Limpiar</button>
+      <span class="pista" id="estado"></span>
+    </div>
+
+    <div id="aviso" class="aviso" hidden></div>
+  </div>
+
+  <datalist id="lista-productos"></datalist>
+</div>
+
+<script>
+/* ==========================================================================
+   CONFIGURACIÓN — lo único que hay que editar
+   ========================================================================== */
+
+// Pega aquí la URL que termina en /exec (Administrar implementaciones → Copiar)
+const API_URL = "https://script.google.com/macros/s/AKfycbxVsocUtBsIJB54u03leHwI3X9PFCSyjMx6l-dZpNE-zsH-HoMU1Q6By9PDvBz6FlGp/exec";
+
+// Déjalo vacío mientras EXIGIR_TOKEN sea false en el Apps Script.
+const TOKEN = "";
+
+const MAX_LINEAS = 10;   // tope de productos por venta
+const FILAS_PAGO = 3;    // métodos de pago simultáneos
+
+/* ========================================================================== */
+
+const $ = s => document.querySelector(s);
+const bs = n => "Bs " + (n || 0).toLocaleString("es-VE", {minimumFractionDigits:2, maximumFractionDigits:2});
+const usd = n => "$" + (n || 0).toLocaleString("es-VE", {minimumFractionDigits:2, maximumFractionDigits:2});
+const num = v => { const n = parseFloat(String(v).replace(",", ".")); return isNaN(n) ? 0 : n; };
+const clave = s => String(s || "").trim().toLowerCase();
+
+let CATALOGO = {}, STOCK = {}, TASA = 0;
+
+function aviso(tipo, texto){
+  const a = $("#aviso");
+  a.className = "aviso " + tipo;
+  a.textContent = texto;
+  a.hidden = false;
+}
+function ocultarAviso(){ $("#aviso").hidden = true; }
+
+/* ---------- construcción de filas ---------- */
+
+function filaProducto(i){
+  return `<tr data-i="${i}">
+    <td><input class="pi prod" list="lista-productos" autocomplete="off" placeholder="${i === 0 ? "Empieza a escribir…" : ""}"></td>
+    <td><input class="pc cant" type="number" min="0" step="1" inputmode="numeric"></td>
+    <td class="n precio">—</td><td class="n total">—</td><td class="n queda">—</td>
+  </tr>`;
+}
+function filaPago(i, metodos){
+  return `<tr>
+    <td><select class="met"><option value="">—</option>${
+      metodos.map(m => `<option>${m}</option>`).join("")}</select></td>
+    <td><input class="pc monto" type="number" min="0" step="0.01" inputmode="decimal"></td>
+    <td><input class="pi ref" autocomplete="off" placeholder="${i === 0 ? "Últimos dígitos, si aplica" : ""}"></td>
+  </tr>`;
+}
+
+/* ---------- cálculo ---------- */
+
+function recalcular(){
+  let total = 0;
+  const pedido = {};
+
+  document.querySelectorAll("#lineas tr").forEach(tr => {
+    const nom = tr.querySelector(".prod").value;
+    const cant = num(tr.querySelector(".cant").value);
+    const p = CATALOGO[clave(nom)];
+    const cPrecio = tr.querySelector(".precio"), cTotal = tr.querySelector(".total"), cQueda = tr.querySelector(".queda");
+
+    if (!p || cant <= 0){
+      cPrecio.textContent = p ? bs(p.precioBs) : "—";
+      cTotal.textContent = "—"; cQueda.textContent = "—"; cQueda.className = "n queda";
+      if (nom.trim() && !p){ cPrecio.textContent = "no está en el catálogo"; cPrecio.className = "n precio bajo"; }
+      else cPrecio.className = "n precio";
+      return;
+    }
+    cPrecio.className = "n precio";
+    const k = clave(p.producto);
+    pedido[k] = (pedido[k] || 0) + cant;
+    const queda = (STOCK[k] === undefined ? 0 : STOCK[k]) - pedido[k];
+
+    cPrecio.textContent = bs(p.precioBs);
+    cTotal.textContent = bs(p.precioBs * cant);
+    cQueda.textContent = queda;
+    cQueda.className = "n queda" + (queda < 0 ? " bajo" : "");
+    total += p.precioBs * cant;
+  });
+
+  let cancelado = 0;
+  document.querySelectorAll("#pagos tr").forEach(tr => {
+    if (tr.querySelector(".met").value) cancelado += num(tr.querySelector(".monto").value);
+  });
+
+  const resto = cancelado - total;
+  $("#t-total").textContent = bs(total);
+  $("#t-cancelado").textContent = bs(cancelado);
+  $("#t-usd").textContent = TASA ? usd(total / TASA) : "—";
+  $("#t-restante-lbl").textContent = resto >= 0 ? "Vuelto" : "Por cancelar";
+  $("#t-restante").textContent = bs(Math.abs(resto));
+  $("#t-restante").className = resto >= 0 ? "vuelto" : "falta";
+
+  return { total, cancelado };
+}
+
+/* ---------- carga inicial ---------- */
+
+async function iniciar(){
+  if (!API_URL){
+    $("#arranque").className = "aviso err";
+    $("#arranque").textContent = "Falta pegar la URL de la API en la constante API_URL, dentro de este archivo.";
+    return;
+  }
+  try {
+    const q = TOKEN ? "&token=" + encodeURIComponent(TOKEN) : "";
+    const r = await fetch(API_URL + "?action=catalogo" + q);
+    const d = await r.json();
+    if (!d.ok) throw new Error(d.error || "respuesta inesperada");
+
+    d.productos.forEach(p => CATALOGO[clave(p.producto)] = p);
+    STOCK = d.stock || {};
+    TASA = (d.tasa && d.tasa.personalizada) || 0;
+
+    $("#lista-productos").innerHTML = d.productos.map(p => `<option value="${p.producto}">`).join("");
+    $("#vendedor").innerHTML = `<option value="">Elige…</option>` +
+      d.vendedores.map(v => `<option>${v}</option>`).join("");
+    $("#tasa").innerHTML = TASA.toLocaleString("es-VE",{minimumFractionDigits:2, maximumFractionDigits:2}) +
+      "<small>Bs por dólar</small>";
+
+    $("#lineas").innerHTML = Array.from({length: MAX_LINEAS}, (_, i) => filaProducto(i)).join("");
+    $("#pagos").innerHTML = Array.from({length: FILAS_PAGO}, (_, i) => filaPago(i, d.metodos)).join("");
+
+    document.querySelectorAll("#lineas input, #pagos input, #pagos select")
+      .forEach(el => el.addEventListener("input", recalcular));
+
+    document.addEventListener("keydown", e => {
+      if (e.key !== "Enter") return;
+      const campos = [...document.querySelectorAll("#lineas input, #pagos select, #pagos input")];
+      const i = campos.indexOf(document.activeElement);
+      if (i > -1 && i < campos.length - 1){ e.preventDefault(); campos[i+1].focus(); }
+    });
+
+    $("#arranque").hidden = true;
+    $("#app").hidden = false;
+    recalcular();
+    $("#vendedor").focus();
+  } catch (err) {
+    $("#arranque").className = "aviso err";
+    $("#arranque").textContent = "No se pudo leer la hoja: " + err.message +
+      ". Revisa que la URL termine en /exec y que la implementación esté publicada con la versión más reciente.";
+  }
+}
+
+/* ---------- registrar ---------- */
+
+function limpiar(){
+  document.querySelectorAll("#lineas input, #pagos input").forEach(el => el.value = "");
+  document.querySelectorAll("#pagos select").forEach(el => el.value = "");
+  ocultarAviso();
+  recalcular();
+  document.querySelector("#lineas .prod").focus();
+}
+
+async function registrar(){
+  ocultarAviso();
+  const vendedor = $("#vendedor").value;
+  if (!vendedor) { aviso("err", "Elige el vendedor."); $("#vendedor").focus(); return; }
+
+  const lineas = [], desconocidos = [];
+  document.querySelectorAll("#lineas tr").forEach(tr => {
+    const nom = tr.querySelector(".prod").value.trim();
+    const cant = num(tr.querySelector(".cant").value);
+    if (!nom) return;
+    if (!CATALOGO[clave(nom)]) { desconocidos.push(nom); return; }
+    if (cant > 0) lineas.push({ producto: CATALOGO[clave(nom)].producto, cantidad: cant });
+  });
+
+  if (desconocidos.length) { aviso("err", "No está en el catálogo: " + desconocidos.join(", ")); return; }
+  if (!lineas.length) { aviso("err", "Carga al menos un producto con su cantidad."); return; }
+
+  const pagos = [];
+  document.querySelectorAll("#pagos tr").forEach(tr => {
+    const met = tr.querySelector(".met").value;
+    const monto = num(tr.querySelector(".monto").value);
+    if (met && monto > 0) pagos.push({ metodo: met, montoBs: monto, referencia: tr.querySelector(".ref").value.trim() });
+  });
+  if (!pagos.length) { aviso("err", "Falta registrar el pago."); return; }
+
+  const { total, cancelado } = recalcular();
+  if (cancelado < total &&
+      !confirm("El cliente canceló " + bs(cancelado) + " de " + bs(total) +
+               ".\nQuedan " + bs(total - cancelado) + " por cobrar.\n\n¿Registrar igual?")) return;
+
+  $("#registrar").disabled = true;
+  $("#estado").textContent = "Registrando…";
+
+  try {
+    const r = await fetch(API_URL, {
+      method: "POST",
+      body: JSON.stringify({ token: TOKEN, vendedor, lineas, pagos })
+    });
+    const d = await r.json();
+    if (!d.ok) throw new Error(d.error + (d.detalle ? " — " + d.detalle.join("; ") : ""));
+
+    aviso("ok", "Venta registrada. " + d.lineas + (d.lineas === 1 ? " producto, " : " productos, ") +
+      bs(d.montoTotal) + (d.vuelto > 0 ? ". Vuelto: " + bs(d.vuelto) : "."));
+
+    lineas.forEach(l => {
+      const k = clave(l.producto);
+      if (STOCK[k] !== undefined) STOCK[k] -= l.cantidad;
+    });
+    document.querySelectorAll("#lineas input, #pagos input").forEach(el => el.value = "");
+    document.querySelectorAll("#pagos select").forEach(el => el.value = "");
+    recalcular();
+    document.querySelector("#lineas .prod").focus();
+  } catch (err) {
+    aviso("err", "No se registró: " + err.message);
+  } finally {
+    $("#registrar").disabled = false;
+    $("#estado").textContent = "";
+  }
+}
+
+$("#registrar").addEventListener("click", registrar);
+$("#limpiar").addEventListener("click", limpiar);
+iniciar();
+</script>
+</body>
+</html>

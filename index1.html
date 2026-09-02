@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vendedores del mes · Caja CEIMEC</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,100..125,400..900&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --papel:#EDEFF3; --papel-alto:#F8F9FB; --tinta:#171A2B; --acero:#6C7488;
+  --linea:#CCD2DC; --azul:#2A2C68; --cielo:#4FC6E8; --oro:#D99A22; --profundo:#1E2050;
+  --display:"Archivo",system-ui,sans-serif; --texto:"IBM Plex Sans",system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--papel);color:var(--tinta);font-family:var(--texto);font-size:17px;line-height:1.6}
+.contenedor{width:min(100% - 2.5rem,1080px);margin-inline:auto;padding:clamp(2rem,5vw,3.5rem) 0}
+h1{font-family:var(--display);font-weight:900;font-stretch:118%;letter-spacing:-.03em;
+   font-size:clamp(2rem,5vw,3.2rem);line-height:1;margin:0 0 .4rem}
+.sub{color:var(--acero);margin:0 0 2rem;max-width:58ch}
+:focus-visible{outline:3px solid var(--azul);outline-offset:3px}
+
+.controles{display:flex;flex-wrap:wrap;gap:1.5rem;align-items:flex-end;margin-bottom:2.25rem;
+  padding-bottom:1.5rem;border-bottom:1px solid var(--linea)}
+.grupo{display:flex;flex-direction:column;gap:.5rem}
+.grupo > span{font-size:.8rem;color:var(--acero)}
+.pills{display:flex;flex-wrap:wrap;gap:.4rem}
+.pill{border:1px solid var(--linea);background:var(--papel-alto);color:var(--tinta);
+  padding:.4rem .85rem;border-radius:99px;font:inherit;font-size:.9rem;cursor:pointer}
+.pill:hover{border-color:var(--azul)}
+.pill[aria-pressed="true"]{background:var(--azul);border-color:var(--azul);color:#fff}
+
+.podio{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--linea);
+  border:1px solid var(--linea);margin-bottom:2rem;align-items:end}
+.p{background:var(--papel-alto);padding:1.25rem 1rem 1.4rem;text-align:center}
+.p.oro{padding-top:2.25rem;padding-bottom:2rem}
+.puesto{font-family:var(--display);font-weight:900;font-stretch:120%;font-size:1.1rem;
+  letter-spacing:-.02em;color:var(--acero);margin-bottom:.75rem}
+.p.oro .puesto{color:var(--oro)}
+.foto{width:100%;max-width:150px;margin:0 auto .85rem;aspect-ratio:4/5;overflow:hidden;
+  background:var(--papel);border:1px solid var(--linea);display:flex;align-items:center;justify-content:center}
+.p.oro .foto{max-width:190px;border:2px solid var(--azul)}
+.foto img{width:100%;height:100%;object-fit:cover;display:block}
+.ini{font-family:var(--display);font-weight:900;font-stretch:120%;font-size:2.2rem;color:var(--linea)}
+.p .nom{font-family:var(--display);font-weight:800;font-stretch:112%;font-size:1.15rem;letter-spacing:-.01em}
+.p.oro .nom{font-size:1.5rem}
+.p .val{color:var(--azul);font-weight:600;font-variant-numeric:tabular-nums}
+.p .otro{font-size:.85rem;color:var(--acero);font-variant-numeric:tabular-nums}
+@media (max-width:640px){
+  .podio{grid-template-columns:1fr}
+  .p.oro{order:-1;padding-top:1.5rem}
+}
+
+.tabla{border:1px solid var(--linea);border-bottom:none}
+.fila{display:grid;grid-template-columns:2.2rem 44px minmax(90px,1fr) minmax(0,2.4fr) auto;
+  gap:.9rem;align-items:center;padding:.7rem 1rem;background:var(--papel-alto);
+  border-bottom:1px solid var(--linea)}
+.fila .pos{font-variant-numeric:tabular-nums;color:var(--acero);font-size:.9rem}
+.mini{width:44px;height:44px;overflow:hidden;background:var(--papel);border:1px solid var(--linea);
+  display:flex;align-items:center;justify-content:center}
+.mini img{width:100%;height:100%;object-fit:cover;display:block}
+.mini .ini{font-size:1rem}
+.fila .quien{font-weight:600;line-height:1.25}
+.barra{height:10px;background:var(--linea);position:relative;overflow:hidden}
+.barra i{position:absolute;inset:0 auto 0 0;background:var(--azul);width:0;transition:width .45s cubic-bezier(.2,.8,.2,1)}
+.fila.top i{background:var(--cielo)}
+.cifra{font-variant-numeric:tabular-nums;font-weight:600;white-space:nowrap;font-size:.95rem}
+.cifra small{display:block;font-weight:400;font-size:.78rem;color:var(--acero)}
+@media (max-width:720px){
+  .fila{grid-template-columns:1.8rem 40px 1fr auto;row-gap:.5rem}
+  .mini{width:40px;height:40px}
+  .barra{grid-column:1 / -1}
+}
+@media (prefers-reduced-motion:reduce){ .barra i{transition:none} }
+
+.nota{margin-top:1.5rem;font-size:.88rem;color:var(--acero)}
+</style>
+</head>
+<body>
+<main class="contenedor">
+  <h1>Vendedores del mes</h1>
+  <p class="sub">Quién movió la caja del CEIMEC. Cambia el mes y el criterio para ver el orden por dinero recaudado o por número de ventas atendidas.</p>
+
+  <div class="controles">
+    <div class="grupo">
+      <span>Mes</span>
+      <div class="pills" id="meses" role="group" aria-label="Elegir mes"></div>
+    </div>
+    <div class="grupo">
+      <span>Ordenar por</span>
+      <div class="pills" role="group" aria-label="Elegir criterio">
+        <button class="pill" data-m="monto" aria-pressed="true">Monto en Bs</button>
+        <button class="pill" data-m="ventas" aria-pressed="false">Número de ventas</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="podio" id="podio"></div>
+  <div class="tabla" id="tabla"></div>
+  <p class="nota" id="nota"></p>
+</main>
+
+<script>
+/* ====== ZONA EDITABLE: [nombre, número de ventas, monto en Bs] ====== */
+const DATOS = {
+  "Enero":[["Andrés",10,3927.41],["Anthony",1,144],["Cecilia",1,783.3],["Daniel",0,0],["Diego",9,1748],["Erick",3,1290],["Frant",5,1846.31],["Georgina",5,1768.48],["Joiber",19,5553.48],["Jose Miguel",23,6667.17],["Keysy",7,2071.75],["Saul",1,241.15],["Ing. Chavi",4,2020]],
+  "Febrero":[["Andrés",13,10701.3],["Anthony",12,1947.39],["Cecilia",12,5122.79],["Daniel",2,150],["Diego",6,1181],["Erick",2,1634],["Frant",0,600],["Georgina",2,755.98],["Joiber",4,1600],["Jose Miguel",19,2708],["Keysy",1,350.39],["Saul",12,4664.22],["Ing. Chavi",15,4676.87]],
+  "Marzo":[["Andrés",8,3515.16],["Anthony",8,2289],["Cecilia",21,8732.52],["Daniel",0,0],["Diego",66,22910],["Erick",4,1203],["Frant",0,0],["Georgina",3,1179.01],["Joiber",1,150],["Jose Miguel",17,4536.67],["Keysy",13,2169.59],["Saul",4,834.73],["Ing. Chavi",1,300]],
+  "Abril":[["Andrés",38,12604.53],["Anthony",3,780],["Cecilia",7,4000],["Daniel",0,0],["Diego",27,7900],["Erick",6,2900],["Frant",2,400],["Georgina",0,0],["Joiber",0,0],["Jose Miguel",1,450],["Keysy",28,11488.08],["Saul",13,3700],["Ing. Chavi",1,50]],
+  "Mayo":[["Andrés",3,1612.53],["Anthony",7,2600],["Cecilia",9,2201],["Daniel",0,0],["Diego",44,37815.65],["Erick",0,0],["Frant",3,4918.71],["Georgina",0,0],["Joiber",0,0],["Jose Miguel",9,14880],["Keysy",22,25464.3],["Saul",0,0],["Ing. Chavi",0,0]],
+  "Junio":[["Andrés",7,1922],["Anthony",18,5800],["Cecilia",6,4572],["Daniel",0,0],["Diego",10,11400],["Erick",0,0],["Frant",1,200],["Georgina",0,0],["Joiber",1,200],["Jose Miguel",1,6327],["Keysy",5,4439.34],["Saul",0,0],["Ing. Chavi",0,0]],
+  "Septiembre":[["Anthony",11,3100]]
+};
+
+/* Nombre en la hoja  →  archivo de foto en esta misma carpeta */
+const FOTOS = {
+  "Andrés":"andres.jpg", "Anthony":"anthony.jpg", "Cecilia":"cecilia.jpg",
+  "Daniel":"daniel.jpg", "Diego":"diego.jpg", "Erick":"erick.jpg",
+  "Frant":"frant.jpg", "Georgina":"georgina.jpg", "Joiber":"joiber.jpg",
+  "Jose Miguel":"josemi.jpg", "Keysy":"keysy.jpg", "Saul":"saul.jpg"
+};
+/* ====== FIN DE LA ZONA EDITABLE ====== */
+
+const $ = s => document.querySelector(s);
+const MESES = Object.keys(DATOS);
+let mes = MESES[MESES.length - 1];
+let criterio = "monto";
+
+function acumulado(){
+  const t = {};
+  MESES.forEach(m => DATOS[m].forEach(([n,v,mo]) => {
+    if (!t[n]) t[n] = [n,0,0];
+    t[n][1] += v; t[n][2] += mo;
+  }));
+  return Object.values(t).map(([n,v,mo]) => [n, v, Math.round(mo*100)/100]);
+}
+const bs = n => "Bs " + n.toLocaleString("es-VE",{minimumFractionDigits:2, maximumFractionDigits:2});
+const iniciales = n => n.replace(/^Ing\.\s*/,"").trim().split(/\s+/).slice(0,2).map(p=>p[0]).join("").toUpperCase();
+
+function retrato(n, clase){
+  const f = FOTOS[n];
+  const ini = `<span class="ini">${iniciales(n)}</span>`;
+  const img = f ? `<img src="${f}" alt="Retrato de ${n}" loading="lazy"
+      onerror="this.parentElement.innerHTML='${ini.replace(/'/g,"\\'")}'">` : ini;
+  return `<div class="${clase}">${img}</div>`;
+}
+
+function pintar(){
+  const filas = (mes === "Acumulado" ? acumulado() : DATOS[mes])
+    .map(([n,v,mo]) => ({n, v, mo}))
+    .filter(p => p.v > 0 || p.mo > 0)
+    .sort((a,b) => criterio === "monto" ? b.mo - a.mo : b.v - a.v);
+
+  if (!filas.length){
+    $("#podio").innerHTML = "";
+    $("#tabla").innerHTML = `<div class="fila"><span class="quien">Sin ventas registradas en ${mes}.</span></div>`;
+    $("#nota").textContent = "";
+    return;
+  }
+
+  const valor = p => criterio === "monto" ? p.mo : p.v;
+  const etiqueta = p => criterio === "monto"
+    ? `${bs(p.mo)}<small>${p.v} ${p.v === 1 ? "venta" : "ventas"}</small>`
+    : `${p.v} ${p.v === 1 ? "venta" : "ventas"}<small>${bs(p.mo)}</small>`;
+
+  const tres = filas.slice(0,3);
+  const orden = tres.length === 3 ? [tres[1], tres[0], tres[2]] : tres;
+  $("#podio").innerHTML = orden.map(p => {
+    const puesto = filas.indexOf(p) + 1;
+    return `<article class="p${puesto === 1 ? " oro" : ""}">
+      <p class="puesto">${puesto}.º lugar</p>
+      ${retrato(p.n, "foto")}
+      <p class="nom">${p.n}</p>
+      <p class="val">${criterio === "monto" ? bs(p.mo) : p.v + (p.v === 1 ? " venta" : " ventas")}</p>
+      <p class="otro">${criterio === "monto" ? p.v + (p.v === 1 ? " venta" : " ventas") : bs(p.mo)}</p>
+    </article>`;
+  }).join("");
+
+  const max = valor(filas[0]) || 1;
+  $("#tabla").innerHTML = filas.map((p,i) => `
+    <div class="fila${i === 0 ? " top" : ""}">
+      <span class="pos">${i+1}</span>
+      ${retrato(p.n, "mini")}
+      <span class="quien">${p.n}</span>
+      <span class="barra"><i data-w="${(valor(p)/max*100).toFixed(1)}"></i></span>
+      <span class="cifra">${etiqueta(p)}</span>
+    </div>`).join("");
+
+  requestAnimationFrame(() =>
+    document.querySelectorAll(".barra i").forEach(b => b.style.width = b.dataset.w + "%"));
+
+  const total = filas.reduce((s,p) => s + p.mo, 0);
+  const ventas = filas.reduce((s,p) => s + p.v, 0);
+  $("#nota").textContent =
+    `${mes}: ${bs(total)} en ${ventas} ventas, repartidas entre ${filas.length} personas.`;
+}
+
+$("#meses").innerHTML = [...MESES, "Acumulado"].map(m =>
+  `<button class="pill" data-mes="${m}" aria-pressed="${m === mes}">${m}</button>`).join("");
+
+$("#meses").addEventListener("click", e => {
+  const b = e.target.closest(".pill"); if (!b) return;
+  mes = b.dataset.mes;
+  document.querySelectorAll("#meses .pill").forEach(x =>
+    x.setAttribute("aria-pressed", x.dataset.mes === mes));
+  pintar();
+});
+
+document.querySelectorAll(".pill[data-m]").forEach(b =>
+  b.addEventListener("click", () => {
+    criterio = b.dataset.m;
+    document.querySelectorAll(".pill[data-m]").forEach(x =>
+      x.setAttribute("aria-pressed", x.dataset.m === criterio));
+    pintar();
+  }));
+
+pintar();
+</script>
+</body>
+</html>
