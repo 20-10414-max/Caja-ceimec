@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Caja · CEIMEC</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,100..125,400..900&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --fondo:#141735; --panel:#1E2249; --panel2:#282D5C; --borde:#363C77; --borde2:#4A519B;
+  --texto:#EEF0F8; --suave:#9AA2CE; --cielo:#4FC6E8; --oro:#F0C04A;
+  --rojo:#FF8B84; --verde:#5FD3A0;
+  --display:"Archivo",system-ui,sans-serif; --sans:"IBM Plex Sans",system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--fondo);color:var(--texto);font-family:var(--sans);font-size:16px;line-height:1.5}
+.wrap{width:min(100% - 2rem,1180px);margin-inline:auto;padding-bottom:3rem}
+h1{font-family:var(--display);font-weight:900;font-stretch:120%;letter-spacing:-.03em;font-size:1.7rem;line-height:1;margin:0}
+h2{font-family:var(--display);font-weight:800;font-stretch:110%;font-size:1.05rem;letter-spacing:-.01em;margin:0 0 .75rem;color:var(--suave)}
+a{color:var(--cielo)}
+:focus-visible{outline:3px solid var(--cielo);outline-offset:2px}
+[hidden]{display:none !important}
+
+.barra{border-bottom:1px solid var(--borde);background:var(--panel);margin-bottom:1.75rem}
+.barra .wrap{display:flex;flex-wrap:wrap;gap:1.25rem;align-items:center;padding:1rem 0 0}
+.tabs{display:flex;gap:.25rem;margin-left:auto;align-self:flex-end}
+.tab{font:inherit;font-weight:600;color:var(--suave);background:none;border:none;cursor:pointer;
+  padding:.7rem 1.1rem;border-bottom:3px solid transparent}
+.tab:hover{color:var(--texto)}
+.tab[aria-selected="true"]{color:var(--cielo);border-bottom-color:var(--cielo)}
+
+label{display:block;font-size:.78rem;color:var(--suave);margin-bottom:.25rem}
+select,input{font:inherit;color:var(--texto);background:var(--panel2);
+  border:1.5px solid var(--borde);border-radius:4px;padding:.5rem .6rem}
+select:focus,input:focus{border-color:var(--cielo);outline:none}
+input::placeholder{color:#7980B4}
+input[type=number]{text-align:right;font-variant-numeric:tabular-nums}
+
+.meta{display:flex;gap:1.5rem;align-items:end;flex-wrap:wrap;margin-bottom:1.5rem}
+.tasa{font-variant-numeric:tabular-nums;font-weight:600}
+.tasa small{display:block;font-weight:400;font-size:.78rem;color:var(--suave)}
+
+table{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--borde);border-radius:4px}
+th{text-align:left;font-size:.75rem;font-weight:500;color:var(--suave);padding:.55rem .7rem;
+  border-bottom:1px solid var(--borde);white-space:nowrap}
+td{padding:.35rem .7rem;border-bottom:1px solid var(--borde)}
+td.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+tr:last-child td{border-bottom:none}
+.pi{width:100%;border:none;background:transparent;padding:.4rem 0}
+.pc{width:7rem;border:none;background:transparent;padding:.4rem 0}
+.pi:focus,.pc:focus{outline:none;border-bottom:2px solid var(--cielo);border-radius:0}
+.bajo{color:var(--rojo);font-weight:600}
+.seccion{margin-top:1.75rem}
+
+.totales{display:grid;grid-template-columns:1fr auto;gap:.35rem 1.5rem;margin-top:1rem;
+  padding:1rem 1.15rem;background:var(--panel);border:1.5px solid var(--borde2);border-radius:4px}
+.totales dt{color:var(--suave);font-size:.92rem}
+.totales dd{margin:0;text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+.totales .grande{font-family:var(--display);font-weight:900;font-stretch:115%;font-size:1.5rem;letter-spacing:-.02em;color:var(--cielo)}
+.totales .falta{color:var(--rojo)}
+.totales .vuelto{color:var(--verde)}
+
+.acciones{display:flex;gap:.75rem;margin-top:1.5rem;flex-wrap:wrap;align-items:center}
+.btn{padding:.7rem 1.5rem;border-radius:4px;border:1.5px solid var(--cielo);background:var(--cielo);
+  color:#10254A;font:inherit;font-weight:600;cursor:pointer}
+.btn:hover:not(:disabled){background:#7FD9F0;border-color:#7FD9F0}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.sec{background:transparent;color:var(--texto);border-color:var(--borde2)}
+.btn.sec:hover{background:var(--panel2)}
+.pista{font-size:.85rem;color:var(--suave)}
+
+.aviso{margin-top:1.25rem;padding:.85rem 1.1rem;border-left:4px solid;font-size:.95rem;background:var(--panel)}
+.aviso.err{border-color:var(--rojo);color:#FFC7C2}
+.aviso.ok{border-color:var(--verde);color:#A9EBCC}
+.aviso.info{border-color:var(--oro);color:#F7DFA8}
+
+/* ---- vendedores ---- */
+.controles{display:flex;flex-wrap:wrap;gap:1.5rem;align-items:flex-end;margin-bottom:2rem;
+  padding-bottom:1.25rem;border-bottom:1px solid var(--borde)}
+.grupo{display:flex;flex-direction:column;gap:.5rem}
+.grupo > span{font-size:.78rem;color:var(--suave)}
+.pills{display:flex;flex-wrap:wrap;gap:.4rem}
+.pill{border:1px solid var(--borde);background:var(--panel);color:var(--texto);
+  padding:.4rem .85rem;border-radius:99px;font:inherit;font-size:.9rem;cursor:pointer}
+.pill:hover{border-color:var(--cielo)}
+.pill[aria-pressed="true"]{background:var(--cielo);border-color:var(--cielo);color:#10254A;font-weight:600}
+
+.podio{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--borde);
+  border:1px solid var(--borde);margin-bottom:2rem;align-items:end}
+.p{background:var(--panel);padding:1.25rem 1rem 1.4rem;text-align:center}
+.p.oro{padding-top:2.25rem;padding-bottom:2rem;background:var(--panel2)}
+.puesto{font-family:var(--display);font-weight:900;font-stretch:120%;font-size:1rem;
+  letter-spacing:-.02em;color:var(--suave);margin:0 0 .75rem}
+.p.oro .puesto{color:var(--oro)}
+.foto{width:100%;max-width:150px;margin:0 auto .85rem;aspect-ratio:4/5;overflow:hidden;
+  background:var(--panel2);border:1px solid var(--borde);display:flex;align-items:center;justify-content:center}
+.p.oro .foto{max-width:190px;border:2px solid var(--oro)}
+.foto img{width:100%;height:100%;object-fit:cover;display:block}
+.ini{font-family:var(--display);font-weight:900;font-stretch:120%;font-size:2rem;color:var(--borde2)}
+.p .nom{font-family:var(--display);font-weight:800;font-stretch:112%;font-size:1.15rem;margin:0}
+.p.oro .nom{font-size:1.45rem}
+.p .val{color:var(--cielo);font-weight:600;font-variant-numeric:tabular-nums;margin:.15rem 0 0}
+.p .otro{font-size:.85rem;color:var(--suave);font-variant-numeric:tabular-nums;margin:.1rem 0 0}
+@media (max-width:640px){ .podio{grid-template-columns:1fr} .p.oro{order:-1;padding-top:1.5rem} }
+
+.rank{border:1px solid var(--borde);border-bottom:none}
+.fila{display:grid;grid-template-columns:2rem 44px minmax(90px,1fr) minmax(0,2.4fr) auto;
+  gap:.9rem;align-items:center;padding:.6rem 1rem;background:var(--panel);border-bottom:1px solid var(--borde)}
+.fila .pos{font-variant-numeric:tabular-nums;color:var(--suave);font-size:.9rem}
+.mini{width:44px;height:44px;overflow:hidden;background:var(--panel2);border:1px solid var(--borde);
+  display:flex;align-items:center;justify-content:center}
+.mini img{width:100%;height:100%;object-fit:cover;display:block}
+.mini .ini{font-size:.95rem}
+.fila .quien{font-weight:600;line-height:1.25}
+.barra2{height:10px;background:var(--panel2);position:relative;overflow:hidden;border-radius:2px}
+.barra2 i{position:absolute;inset:0 auto 0 0;background:var(--borde2);width:0;transition:width .45s cubic-bezier(.2,.8,.2,1)}
+.fila.top i{background:var(--cielo)}
+.cifra{font-variant-numeric:tabular-nums;font-weight:600;white-space:nowrap;font-size:.95rem}
+.cifra small{display:block;font-weight:400;font-size:.78rem;color:var(--suave)}
+@media (max-width:720px){ .fila{grid-template-columns:1.8rem 40px 1fr auto;row-gap:.5rem}
+  .mini{width:40px;height:40px} .barra2{grid-column:1 / -1} }
+@media (prefers-reduced-motion:reduce){ .barra2 i{transition:none} }
+.nota{margin-top:1.25rem;font-size:.88rem;color:var(--suave)}
+</style>
+</head>
+<body>
+
+<header class="barra">
+  <div class="wrap">
+    <h1>Caja CEIMEC</h1>
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" id="tab-caja" aria-controls="panel-caja" aria-selected="true">Registrar venta</button>
+      <button class="tab" role="tab" id="tab-vend" aria-controls="panel-vend" aria-selected="false">Vendedores del mes</button>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+<div id="arranque" class="aviso info">Conectando con la hoja de cálculo…</div>
+
+<!-- ================= CAJA ================= -->
+<section id="panel-caja" role="tabpanel" aria-labelledby="tab-caja" hidden>
+  <div class="meta">
+    <div>
+      <label for="vendedor">Vendedor</label>
+      <select id="vendedor"><option value="">Cargando…</option></select>
+    </div>
+    <div class="tasa" id="tasa">—<small>Tasa del día</small></div>
+  </div>
+
+  <h2>Productos</h2>
+  <table>
+    <thead><tr>
+      <th style="width:34%">Producto</th><th style="width:9rem">Cantidad</th>
+      <th class="n">Precio Bs</th><th class="n">Total Bs</th><th class="n">Stock queda</th>
+    </tr></thead>
+    <tbody id="lineas"></tbody>
+  </table>
+  <p class="pista" style="margin:.6rem 0 0">Escribe las primeras letras del producto y elige de la lista. Enter salta al siguiente campo.</p>
+
+  <div class="seccion">
+    <h2>Pago</h2>
+    <table>
+      <thead><tr><th style="width:34%">Método</th><th style="width:12rem">Monto Bs</th><th>Referencia</th></tr></thead>
+      <tbody id="pagos"></tbody>
+    </table>
+    <dl class="totales">
+      <dt>Monto total</dt><dd class="grande" id="t-total">Bs 0,00</dd>
+      <dt>Total cancelado</dt><dd id="t-cancelado">Bs 0,00</dd>
+      <dt id="t-restante-lbl">Por cancelar</dt><dd id="t-restante">Bs 0,00</dd>
+      <dt>Equivalente en dólares</dt><dd id="t-usd">$0,00</dd>
+    </dl>
+  </div>
+
+  <div class="acciones">
+    <button class="btn" id="registrar">Registrar venta</button>
+    <button class="btn sec" id="limpiar">Limpiar</button>
+    <span class="pista" id="estado"></span>
+  </div>
+  <div id="aviso" class="aviso" hidden></div>
+</section>
+
+<!-- ================= VENDEDORES ================= -->
+<section id="panel-vend" role="tabpanel" aria-labelledby="tab-vend" hidden>
+  <div class="controles">
+    <div class="grupo"><span>Mes</span><div class="pills" id="meses" role="group" aria-label="Elegir mes"></div></div>
+    <div class="grupo"><span>Ordenar por</span>
+      <div class="pills" role="group" aria-label="Elegir criterio">
+        <button class="pill" data-m="monto" aria-pressed="true">Monto en Bs</button>
+        <button class="pill" data-m="ventas" aria-pressed="false">Número de ventas</button>
+      </div>
+    </div>
+    <div class="grupo"><span>&nbsp;</span>
+      <button class="pill" id="refrescar">Actualizar</button></div>
+  </div>
+  <div class="podio" id="podio"></div>
+  <div class="rank" id="rank"></div>
+  <p class="nota" id="nota"></p>
+</section>
+
+<datalist id="lista-productos"></datalist>
+</div>
+
+<script>
+/* ==========================================================================
+   CONFIGURACIÓN — lo único que hay que editar
+   ========================================================================== */
+
+// URL que termina en /exec (Administrar implementaciones → Aplicación web → Copiar)
+const API_URL = "https://script.google.com/macros/s/AKfycbxVsocUtBsIJB54u03leHwI3X9PFCSyjMx6l-dZpNE-zsH-HoMU1Q6By9PDvBz6FlGp/exec";
+
+// Déjalo vacío mientras EXIGIR_TOKEN sea false en el Apps Script.
+const TOKEN = "";
+
+const MAX_LINEAS = 10;
+const FILAS_PAGO = 3;
+
+// Nombre tal como aparece en la hoja  →  archivo de foto en esta misma carpeta.
+// Quien no esté aquí sale con sus iniciales.
+const FOTOS = {
+  "andrés":"andres.jpg", "anthony":"anthony.jpg", "cecilia":"cecilia.jpg",
+  "daniel":"daniel.jpg", "diego":"diego.jpg", "erick":"erick.jpg",
+  "frant":"frant.jpg", "georgina":"georgina.jpg", "joiber":"joiber.jpg",
+  "jose miguel":"josemi.jpg", "josemi":"josemi.jpg",
+  "keysy":"keysy.jpg", "saul":"saul.jpg", "saúl":"saul.jpg"
+};
+
+/* ========================================================================== */
+
+const MES_NOMBRE = ["enero","febrero","marzo","abril","mayo","junio",
+                    "julio","agosto","septiembre","octubre","noviembre","diciembre"];
+const $ = s => document.querySelector(s);
+const bs = n => "Bs " + (n||0).toLocaleString("es-VE",{minimumFractionDigits:2,maximumFractionDigits:2});
+const usd = n => "$" + (n||0).toLocaleString("es-VE",{minimumFractionDigits:2,maximumFractionDigits:2});
+const num = v => { const n = parseFloat(String(v).replace(",",".")); return isNaN(n) ? 0 : n; };
+const clave = s => String(s||"").trim().toLowerCase();
+const q = () => TOKEN ? "&token=" + encodeURIComponent(TOKEN) : "";
+
+let CATALOGO = {}, STOCK = {}, TASA = 0;
+let RANKING = null, rankingSucio = true;
+let mesSel = null, criterio = "monto";
+
+function aviso(t, txt){ const a = $("#aviso"); a.className = "aviso " + t; a.textContent = txt; a.hidden = false; }
+
+/* ---------------- pestañas ---------------- */
+function verPestana(cual){
+  const caja = cual === "caja";
+  $("#tab-caja").setAttribute("aria-selected", caja);
+  $("#tab-vend").setAttribute("aria-selected", !caja);
+  $("#panel-caja").hidden = !caja;
+  $("#panel-vend").hidden = caja;
+  if (!caja && rankingSucio) cargarRanking();
+}
+$("#tab-caja").addEventListener("click", () => verPestana("caja"));
+$("#tab-vend").addEventListener("click", () => verPestana("vend"));
+
+/* ---------------- caja ---------------- */
+function filaProducto(i){
+  return `<tr>
+    <td><input class="pi prod" list="lista-productos" autocomplete="off" placeholder="${i===0?"Empieza a escribir…":""}"></td>
+    <td><input class="pc cant" type="number" min="0" step="1" inputmode="numeric"></td>
+    <td class="n precio">—</td><td class="n total">—</td><td class="n queda">—</td></tr>`;
+}
+function filaPago(i, metodos){
+  return `<tr>
+    <td><select class="met"><option value="">—</option>${metodos.map(m=>`<option>${m}</option>`).join("")}</select></td>
+    <td><input class="pc monto" type="number" min="0" step="0.01" inputmode="decimal"></td>
+    <td><input class="pi ref" autocomplete="off" placeholder="${i===0?"Últimos dígitos, si aplica":""}"></td></tr>`;
+}
+
+function recalcular(){
+  let total = 0; const pedido = {};
+  document.querySelectorAll("#lineas tr").forEach(tr => {
+    const nom = tr.querySelector(".prod").value;
+    const cant = num(tr.querySelector(".cant").value);
+    const p = CATALOGO[clave(nom)];
+    const cP = tr.querySelector(".precio"), cT = tr.querySelector(".total"), cQ = tr.querySelector(".queda");
+    if (!p || cant <= 0){
+      cP.className = "n precio"; cT.textContent = "—"; cQ.textContent = "—"; cQ.className = "n queda";
+      if (nom.trim() && !p){ cP.textContent = "no está en el catálogo"; cP.className = "n precio bajo"; }
+      else cP.textContent = p ? bs(p.precioBs) : "—";
+      return;
+    }
+    cP.className = "n precio";
+    const k = clave(p.producto);
+    pedido[k] = (pedido[k]||0) + cant;
+    const queda = (STOCK[k] === undefined ? 0 : STOCK[k]) - pedido[k];
+    cP.textContent = bs(p.precioBs);
+    cT.textContent = bs(p.precioBs * cant);
+    cQ.textContent = queda;
+    cQ.className = "n queda" + (queda < 0 ? " bajo" : "");
+    total += p.precioBs * cant;
+  });
+  let cancelado = 0;
+  document.querySelectorAll("#pagos tr").forEach(tr => {
+    if (tr.querySelector(".met").value) cancelado += num(tr.querySelector(".monto").value);
+  });
+  const resto = cancelado - total;
+  $("#t-total").textContent = bs(total);
+  $("#t-cancelado").textContent = bs(cancelado);
+  $("#t-usd").textContent = TASA ? usd(total/TASA) : "—";
+  $("#t-restante-lbl").textContent = resto >= 0 ? "Vuelto" : "Por cancelar";
+  $("#t-restante").textContent = bs(Math.abs(resto));
+  $("#t-restante").className = resto >= 0 ? "vuelto" : "falta";
+  return { total, cancelado };
+}
+
+async function registrar(){
+  $("#aviso").hidden = true;
+  const vendedor = $("#vendedor").value;
+  if (!vendedor){ aviso("err","Elige el vendedor."); $("#vendedor").focus(); return; }
+
+  const lineas = [], desconocidos = [];
+  document.querySelectorAll("#lineas tr").forEach(tr => {
+    const nom = tr.querySelector(".prod").value.trim();
+    const cant = num(tr.querySelector(".cant").value);
+    if (!nom) return;
+    if (!CATALOGO[clave(nom)]) { desconocidos.push(nom); return; }
+    if (cant > 0) lineas.push({ producto: CATALOGO[clave(nom)].producto, cantidad: cant });
+  });
+  if (desconocidos.length){ aviso("err","No está en el catálogo: " + desconocidos.join(", ")); return; }
+  if (!lineas.length){ aviso("err","Carga al menos un producto con su cantidad."); return; }
+
+  const pagos = [];
+  document.querySelectorAll("#pagos tr").forEach(tr => {
+    const met = tr.querySelector(".met").value, monto = num(tr.querySelector(".monto").value);
+    if (met && monto > 0) pagos.push({ metodo: met, montoBs: monto, referencia: tr.querySelector(".ref").value.trim() });
+  });
+  if (!pagos.length){ aviso("err","Falta registrar el pago."); return; }
+
+  const { total, cancelado } = recalcular();
+  if (cancelado < total && !confirm("El cliente canceló " + bs(cancelado) + " de " + bs(total) +
+      ".\nQuedan " + bs(total-cancelado) + " por cobrar.\n\n¿Registrar igual?")) return;
+
+  $("#registrar").disabled = true; $("#estado").textContent = "Registrando…";
+  try {
+    const r = await fetch(API_URL, { method:"POST", body: JSON.stringify({ token: TOKEN, vendedor, lineas, pagos }) });
+    const d = await r.json();
+    if (!d.ok) throw new Error(d.error + (d.detalle ? " — " + d.detalle.join("; ") : ""));
+
+    aviso("ok", "Venta registrada. " + d.lineas + (d.lineas === 1 ? " producto, " : " productos, ") +
+      bs(d.montoTotal) + (d.vuelto > 0 ? ". Vuelto: " + bs(d.vuelto) : "."));
+    lineas.forEach(l => { const k = clave(l.producto); if (STOCK[k] !== undefined) STOCK[k] -= l.cantidad; });
+    document.querySelectorAll("#lineas input, #pagos input").forEach(el => el.value = "");
+    document.querySelectorAll("#pagos select").forEach(el => el.value = "");
+    rankingSucio = true;
+    recalcular();
+    document.querySelector("#lineas .prod").focus();
+  } catch (err) {
+    aviso("err", "No se registró: " + err.message);
+  } finally {
+    $("#registrar").disabled = false; $("#estado").textContent = "";
+  }
+}
+
+/* ---------------- vendedores ---------------- */
+const iniciales = n => String(n).replace(/^Ing\.\s*/i,"").trim().split(/\s+/).slice(0,2).map(p=>p[0]).join("").toUpperCase();
+
+function retrato(n, clase){
+  const f = FOTOS[clave(n)];
+  const ini = `<span class="ini">${iniciales(n)}</span>`;
+  if (!f) return `<div class="${clase}">${ini}</div>`;
+  return `<div class="${clase}"><img src="${f}" alt="Retrato de ${n}" loading="lazy"
+    onerror="this.parentElement.innerHTML='&lt;span class=&quot;ini&quot;&gt;${iniciales(n)}&lt;/span&gt;'"></div>`;
+}
+
+function etiquetaMes(k){
+  if (k === "Acumulado") return "Acumulado";
+  const [a,m] = k.split("-");
+  const nom = MES_NOMBRE[parseInt(m,10)-1] || k;
+  return nom.charAt(0).toUpperCase() + nom.slice(1) + " " + a;
+}
+
+async function cargarRanking(){
+  try {
+    $("#nota").textContent = "Actualizando…";
+    const r = await fetch(API_URL + "?action=ranking" + q());
+    const d = await r.json();
+    if (!d.ok) throw new Error(d.error);
+    RANKING = d.meses; rankingSucio = false;
+    const claves = Object.keys(RANKING).sort();
+    if (!mesSel || !RANKING[mesSel]) mesSel = claves[claves.length-1];
+    $("#meses").innerHTML = [...claves,"Acumulado"].map(k =>
+      `<button class="pill" data-mes="${k}" aria-pressed="${k===mesSel}">${etiquetaMes(k)}</button>`).join("");
+    pintarRanking();
+  } catch (err) {
+    $("#nota").textContent = "No se pudo leer el ranking: " + err.message;
+  }
+}
+
+function acumulado(){
+  const t = {};
+  Object.values(RANKING).forEach(mes => mes.forEach(([n,v,m]) => {
+    if (!t[n]) t[n] = [n,0,0];
+    t[n][1] += v; t[n][2] += m;
+  }));
+  return Object.values(t).map(([n,v,m]) => [n, v, Math.round(m*100)/100]);
+}
+
+function pintarRanking(){
+  if (!RANKING) return;
+  const base = mesSel === "Acumulado" ? acumulado() : (RANKING[mesSel] || []);
+  const filas = base.map(([n,v,m]) => ({n, v, m}))
+    .filter(p => p.v > 0 || p.m > 0)
+    .sort((a,b) => criterio === "monto" ? b.m - a.m : b.v - a.v);
+
+  if (!filas.length){
+    $("#podio").innerHTML = ""; $("#rank").innerHTML = "";
+    $("#nota").textContent = "Sin ventas registradas en " + etiquetaMes(mesSel) + ".";
+    return;
+  }
+  const val = p => criterio === "monto" ? p.m : p.v;
+  const vts = v => v + (v === 1 ? " venta" : " ventas");
+
+  const tres = filas.slice(0,3);
+  const orden = tres.length === 3 ? [tres[1], tres[0], tres[2]] : tres;
+  $("#podio").innerHTML = orden.map(p => {
+    const puesto = filas.indexOf(p) + 1;
+    return `<article class="p${puesto===1?" oro":""}">
+      <p class="puesto">${puesto}.º lugar</p>${retrato(p.n,"foto")}
+      <p class="nom">${p.n}</p>
+      <p class="val">${criterio==="monto" ? bs(p.m) : vts(p.v)}</p>
+      <p class="otro">${criterio==="monto" ? vts(p.v) : bs(p.m)}</p></article>`;
+  }).join("");
+
+  const max = val(filas[0]) || 1;
+  $("#rank").innerHTML = filas.map((p,i) => `
+    <div class="fila${i===0?" top":""}"><span class="pos">${i+1}</span>${retrato(p.n,"mini")}
+      <span class="quien">${p.n}</span>
+      <span class="barra2"><i data-w="${(val(p)/max*100).toFixed(1)}"></i></span>
+      <span class="cifra">${criterio==="monto"
+        ? bs(p.m) + "<small>" + vts(p.v) + "</small>"
+        : vts(p.v) + "<small>" + bs(p.m) + "</small>"}</span></div>`).join("");
+
+  requestAnimationFrame(() =>
+    document.querySelectorAll(".barra2 i").forEach(b => b.style.width = b.dataset.w + "%"));
+
+  const tot = filas.reduce((s,p) => s + p.m, 0);
+  const nv = filas.reduce((s,p) => s + p.v, 0);
+  $("#nota").textContent = etiquetaMes(mesSel) + ": " + bs(tot) + " en " + nv +
+    " ventas, repartidas entre " + filas.length + " personas.";
+}
+
+$("#meses").addEventListener("click", e => {
+  const b = e.target.closest(".pill"); if (!b) return;
+  mesSel = b.dataset.mes;
+  document.querySelectorAll("#meses .pill").forEach(x => x.setAttribute("aria-pressed", x.dataset.mes === mesSel));
+  pintarRanking();
+});
+document.querySelectorAll(".pill[data-m]").forEach(b => b.addEventListener("click", () => {
+  criterio = b.dataset.m;
+  document.querySelectorAll(".pill[data-m]").forEach(x => x.setAttribute("aria-pressed", x.dataset.m === criterio));
+  pintarRanking();
+}));
+$("#refrescar").addEventListener("click", cargarRanking);
+
+/* ---------------- arranque ---------------- */
+async function iniciar(){
+  if (!API_URL){
+    $("#arranque").className = "aviso err";
+    $("#arranque").textContent = "Falta pegar la URL de la API en la constante API_URL, dentro de este archivo.";
+    return;
+  }
+  try {
+    const r = await fetch(API_URL + "?action=catalogo" + q());
+    const d = await r.json();
+    if (!d.ok) throw new Error(d.error || "respuesta inesperada");
+
+    d.productos.forEach(p => CATALOGO[clave(p.producto)] = p);
+    STOCK = d.stock || {};
+    TASA = (d.tasa && d.tasa.personalizada) || 0;
+
+    $("#lista-productos").innerHTML = d.productos.map(p => `<option value="${p.producto}">`).join("");
+    $("#vendedor").innerHTML = `<option value="">Elige…</option>` + d.vendedores.map(v => `<option>${v}</option>`).join("");
+    $("#tasa").innerHTML = TASA.toLocaleString("es-VE",{minimumFractionDigits:2,maximumFractionDigits:2}) +
+      "<small>Bs por dólar</small>";
+    $("#lineas").innerHTML = Array.from({length:MAX_LINEAS},(_,i)=>filaProducto(i)).join("");
+    $("#pagos").innerHTML = Array.from({length:FILAS_PAGO},(_,i)=>filaPago(i,d.metodos)).join("");
+
+    document.querySelectorAll("#lineas input, #pagos input, #pagos select")
+      .forEach(el => el.addEventListener("input", recalcular));
+    document.addEventListener("keydown", e => {
+      if (e.key !== "Enter") return;
+      const campos = [...document.querySelectorAll("#lineas input, #pagos select, #pagos input")];
+      const i = campos.indexOf(document.activeElement);
+      if (i > -1 && i < campos.length - 1){ e.preventDefault(); campos[i+1].focus(); }
+    });
+
+    $("#arranque").hidden = true;
+    verPestana("caja");
+    recalcular();
+    $("#vendedor").focus();
+  } catch (err) {
+    $("#arranque").className = "aviso err";
+    $("#arranque").textContent = "No se pudo leer la hoja: " + err.message +
+      ". Revisa que la URL termine en /exec y que esté publicada la versión más reciente.";
+  }
+}
+
+$("#registrar").addEventListener("click", registrar);
+$("#limpiar").addEventListener("click", () => {
+  document.querySelectorAll("#lineas input, #pagos input").forEach(el => el.value = "");
+  document.querySelectorAll("#pagos select").forEach(el => el.value = "");
+  $("#aviso").hidden = true; recalcular();
+  document.querySelector("#lineas .prod").focus();
+});
+iniciar();
+</script>
+</body>
+</html>
