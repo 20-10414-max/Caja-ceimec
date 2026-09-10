@@ -53,6 +53,19 @@ tr:last-child td{border-bottom:none}
 .pi:focus,.pc:focus{outline:none;border-bottom:2px solid var(--cielo);border-radius:0}
 .bajo{color:var(--rojo);font-weight:600}
 .seccion{margin-top:1.75rem}
+.dos-col{display:grid;grid-template-columns:1.35fr 1fr;gap:1.5rem;align-items:start}
+@media (max-width:900px){ .dos-col{grid-template-columns:1fr} .dos-col h2:empty{display:none} }
+th.cab{text-align:center;color:var(--cielo);border-left:1px solid var(--borde);border-right:1px solid var(--borde)}
+.grid td, .grid th{border-right:1px solid var(--borde)}
+.grid td:last-child, .grid th:last-child{border-right:none}
+.metodo{font-weight:600;white-space:nowrap}
+.metodo em{font-style:normal;color:var(--suave);font-weight:400;font-size:.8rem;margin-left:.35rem}
+.calc{color:var(--suave)}
+.totales2 td{padding:.5rem .7rem}
+.totales2 .grande{font-family:var(--display);font-weight:900;font-stretch:115%;font-size:1.35rem;
+  letter-spacing:-.02em;color:var(--cielo)}
+.n.falta{color:var(--rojo)} .n.vuelto{color:var(--verde)}
+.n.cero{color:var(--suave)}
 
 .totales{display:grid;grid-template-columns:1fr auto;gap:.35rem 1.5rem;margin-top:1rem;
   padding:1rem 1.15rem;background:var(--panel);border:1.5px solid var(--borde2);border-radius:4px}
@@ -160,35 +173,46 @@ tr:last-child td{border-bottom:none}
 <!-- ================= CAJA ================= -->
 <section id="panel-caja" role="tabpanel" aria-labelledby="tab-caja" hidden>
   <div class="meta">
-    <div>
-      <label for="vendedor">Vendedor</label>
-      <select id="vendedor"><option value="">Cargando…</option></select>
-    </div>
+    <div><label for="fecha">Fecha</label><input id="fecha" readonly></div>
+    <div><label for="hora">Hora</label><input id="hora" readonly style="width:6rem"></div>
+    <div><label for="vendedor">Vendedor</label><select id="vendedor"><option value="">Cargando…</option></select></div>
     <div class="tasa" id="tasa">—<small>Tasa del día</small></div>
   </div>
 
-  <h2>Productos</h2>
-  <table>
-    <thead><tr>
-      <th style="width:34%">Producto</th><th style="width:9rem">Cantidad</th>
-      <th class="n">Precio Bs</th><th class="n">Total Bs</th><th class="n">Stock queda</th>
-    </tr></thead>
+  <table class="grid">
+    <thead>
+      <tr><th></th><th></th><th></th><th colspan="2" class="cab">Precio individual</th>
+          <th colspan="2" class="cab">Precio total</th><th></th></tr>
+      <tr><th style="width:24%">Producto</th><th>Categoría de producto</th><th style="width:6rem">Cantidad</th>
+          <th class="n">USD</th><th class="n">Bs</th><th class="n">USD</th><th class="n">Bs</th>
+          <th class="n">Stock final</th></tr>
+    </thead>
     <tbody id="lineas"></tbody>
   </table>
-  <p class="pista" style="margin:.6rem 0 0">Escribe las primeras letras del producto y elige de la lista. Enter salta al siguiente campo.</p>
+  <p class="pista" style="margin:.6rem 0 0">Solo se escriben producto y cantidad. Enter salta al siguiente campo.</p>
 
-  <div class="seccion">
-    <h2>Pago</h2>
-    <table>
-      <thead><tr><th style="width:34%">Método</th><th style="width:12rem">Monto Bs</th><th>Referencia</th></tr></thead>
-      <tbody id="pagos"></tbody>
-    </table>
-    <dl class="totales">
-      <dt>Monto total</dt><dd class="grande" id="t-total">Bs 0,00</dd>
-      <dt>Total cancelado</dt><dd id="t-cancelado">Bs 0,00</dd>
-      <dt id="t-restante-lbl">Por cancelar</dt><dd id="t-restante">Bs 0,00</dd>
-      <dt>Equivalente en dólares</dt><dd id="t-usd">$0,00</dd>
-    </dl>
+  <div class="seccion dos-col">
+    <div>
+      <h2>Pago del cliente</h2>
+      <table class="grid">
+        <thead><tr><th style="width:36%">Tipo de pago</th><th class="n">Monto cancelado</th>
+          <th class="n">Monto Bs</th><th>Referencia</th></tr></thead>
+        <tbody id="pagos"></tbody>
+      </table>
+    </div>
+    <div>
+      <h2>&nbsp;</h2>
+      <table class="grid totales2">
+        <thead><tr><th></th><th class="n">USD</th><th class="n">Bs</th></tr></thead>
+        <tbody>
+          <tr><td>Monto total</td><td class="n" id="tt-usd">0,00</td><td class="n grande" id="tt-bs">0,00</td></tr>
+          <tr><td>Total cancelado</td><td class="n" id="tc-usd">0,00</td><td class="n" id="tc-bs">0,00</td></tr>
+          <tr><td>Total por cancelar</td><td class="n falta" id="tp-usd">0,00</td><td class="n falta" id="tp-bs">0,00</td></tr>
+          <tr><td>Vuelto sugerido</td><td class="n vuelto" id="tv-usd">0,00</td><td class="n vuelto" id="tv-bs">0,00</td></tr>
+          <tr><td>Tasa del día</td><td class="n">1,00</td><td class="n" id="tr-bs">—</td></tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 
   <div class="acciones">
@@ -243,13 +267,19 @@ tr:last-child td{border-bottom:none}
    ========================================================================== */
 
 // URL que termina en /exec (Administrar implementaciones → Aplicación web → Copiar)
-const API_URL = "https://script.google.com/macros/s/AKfycbxVsocUtBsIJB54u03leHwI3X9PFCSyjMx6l-dZpNE-zsH-HoMU1Q6By9PDvBz6FlGp/exec";
+const API_URL = "";
 
 // Déjalo vacío mientras EXIGIR_TOKEN sea false en el Apps Script.
 const TOKEN = "";
 
 const MAX_LINEAS = 10;
-const FILAS_PAGO = 3;
+
+// Orden en que se listan los métodos de pago, igual que en la hoja.
+// Los que no estén aquí se añaden al final, en el orden que traiga la hoja.
+const ORDEN_PAGOS = ["Pago móvil", "Efectivo bolívares", "Efectivo dólares", "Binance", "Punto de venta"];
+
+// Métodos cuyo "monto cancelado" se escribe en dólares. El resto, en bolívares.
+const METODOS_USD = ["efectivo dólares", "binance"];
 
 // Nombre tal como aparece en la hoja  →  archivo de foto en esta misma carpeta.
 // Quien no esté aquí sale con sus iniciales.
@@ -298,51 +328,85 @@ PANELES.forEach(n => $("#tab-" + n).addEventListener("click", () => verPestana(n
 function filaProducto(i){
   return `<tr>
     <td><input class="pi prod" list="lista-productos" autocomplete="off" placeholder="${i===0?"Empieza a escribir…":""}"></td>
-    <td><input class="pc cant" type="number" min="0" step="1" inputmode="numeric"></td>
-    <td class="n precio">—</td><td class="n total">—</td><td class="n queda">—</td></tr>`;
+    <td class="calc cat">—</td>
+    <td><input class="pc cant" type="number" min="0" step="1" inputmode="numeric" style="width:4.5rem"></td>
+    <td class="n calc pu">—</td><td class="n calc pb">—</td>
+    <td class="n tu">—</td><td class="n tb">—</td><td class="n queda">—</td></tr>`;
 }
-function filaPago(i, metodos){
-  return `<tr>
-    <td><select class="met"><option value="">—</option>${metodos.map(m=>`<option>${m}</option>`).join("")}</select></td>
-    <td><input class="pc monto" type="number" min="0" step="0.01" inputmode="decimal"></td>
-    <td><input class="pi ref" autocomplete="off" placeholder="${i===0?"Últimos dígitos, si aplica":""}"></td></tr>`;
+
+function filaPago(m){
+  const enUSD = METODOS_USD.indexOf(clave(m)) > -1;
+  return `<tr data-metodo="${m}" data-usd="${enUSD}">
+    <td class="metodo">${m}<em>${enUSD ? "en $" : "en Bs"}</em></td>
+    <td><input class="pc monto" type="number" min="0" step="0.01" inputmode="decimal" style="width:100%"></td>
+    <td class="n calc mbs">—</td>
+    <td><input class="pi ref" autocomplete="off" placeholder="${enUSD ? "" : "Últimos dígitos"}"></td></tr>`;
+}
+
+const dec = n => (n||0).toLocaleString("es-VE",{minimumFractionDigits:2,maximumFractionDigits:2});
+function celda(el, valor, cero){
+  el.textContent = dec(valor);
+  el.classList.toggle("cero", !!cero && !valor);
 }
 
 function recalcular(){
-  let total = 0; const pedido = {};
+  let totalUSD = 0, totalBs = 0;
+  const pedido = {};
+
   document.querySelectorAll("#lineas tr").forEach(tr => {
     const nom = tr.querySelector(".prod").value;
     const cant = num(tr.querySelector(".cant").value);
     const p = CATALOGO[clave(nom)];
-    const cP = tr.querySelector(".precio"), cT = tr.querySelector(".total"), cQ = tr.querySelector(".queda");
-    if (!p || cant <= 0){
-      cP.className = "n precio"; cT.textContent = "—"; cQ.textContent = "—"; cQ.className = "n queda";
-      if (nom.trim() && !p){ cP.textContent = "no está en el catálogo"; cP.className = "n precio bajo"; }
-      else cP.textContent = p ? bs(p.precioBs) : "—";
+    const c = sel => tr.querySelector(sel);
+
+    if (!p){
+      c(".cat").textContent = nom.trim() ? "no está en el catálogo" : "—";
+      c(".cat").className = nom.trim() ? "calc cat bajo" : "calc cat";
+      [".pu",".pb",".tu",".tb",".queda"].forEach(x => { c(x).textContent = "—"; });
+      c(".queda").className = "n queda";
       return;
     }
-    cP.className = "n precio";
+    c(".cat").className = "calc cat";
+    c(".cat").textContent = p.categoria || "—";
+    c(".pu").textContent = dec(p.precioUSD);
+    c(".pb").textContent = dec(p.precioBs);
+
+    if (cant <= 0){
+      c(".tu").textContent = "—"; c(".tb").textContent = "—";
+      c(".queda").textContent = "—"; c(".queda").className = "n queda";
+      return;
+    }
     const k = clave(p.producto);
     pedido[k] = (pedido[k]||0) + cant;
     const queda = (STOCK[k] === undefined ? 0 : STOCK[k]) - pedido[k];
-    cP.textContent = bs(p.precioBs);
-    cT.textContent = bs(p.precioBs * cant);
-    cQ.textContent = queda;
-    cQ.className = "n queda" + (queda < 0 ? " bajo" : "");
-    total += p.precioBs * cant;
+    c(".tu").textContent = dec(p.precioUSD * cant);
+    c(".tb").textContent = dec(p.precioBs * cant);
+    c(".queda").textContent = queda;
+    c(".queda").className = "n queda" + (queda < 0 ? " bajo" : "");
+    totalUSD += p.precioUSD * cant;
+    totalBs  += p.precioBs  * cant;
   });
-  let cancelado = 0;
+
+  let canceladoBs = 0;
   document.querySelectorAll("#pagos tr").forEach(tr => {
-    if (tr.querySelector(".met").value) cancelado += num(tr.querySelector(".monto").value);
+    const monto = num(tr.querySelector(".monto").value);
+    const enUSD = tr.dataset.usd === "true";
+    const enBs = enUSD ? monto * TASA : monto;
+    celda(tr.querySelector(".mbs"), enBs, true);
+    if (!monto) tr.querySelector(".mbs").textContent = "—";
+    canceladoBs += enBs;
   });
-  const resto = cancelado - total;
-  $("#t-total").textContent = bs(total);
-  $("#t-cancelado").textContent = bs(cancelado);
-  $("#t-usd").textContent = TASA ? usd(total/TASA) : "—";
-  $("#t-restante-lbl").textContent = resto >= 0 ? "Vuelto" : "Por cancelar";
-  $("#t-restante").textContent = bs(Math.abs(resto));
-  $("#t-restante").className = resto >= 0 ? "vuelto" : "falta";
-  return { total, cancelado };
+
+  const canceladoUSD = TASA ? canceladoBs / TASA : 0;
+  const faltaBs = Math.max(0, totalBs - canceladoBs);
+  const vueltoBs = Math.max(0, canceladoBs - totalBs);
+
+  celda($("#tt-usd"), totalUSD, true);      celda($("#tt-bs"), totalBs, true);
+  celda($("#tc-usd"), canceladoUSD, true);  celda($("#tc-bs"), canceladoBs, true);
+  celda($("#tp-usd"), TASA ? faltaBs/TASA : 0, true);  celda($("#tp-bs"), faltaBs, true);
+  celda($("#tv-usd"), TASA ? vueltoBs/TASA : 0, true); celda($("#tv-bs"), vueltoBs, true);
+
+  return { totalBs, canceladoBs };
 }
 
 async function registrar(){
@@ -363,12 +427,15 @@ async function registrar(){
 
   const pagos = [];
   document.querySelectorAll("#pagos tr").forEach(tr => {
-    const met = tr.querySelector(".met").value, monto = num(tr.querySelector(".monto").value);
-    if (met && monto > 0) pagos.push({ metodo: met, montoBs: monto, referencia: tr.querySelector(".ref").value.trim() });
+    const monto = num(tr.querySelector(".monto").value);
+    if (monto <= 0) return;
+    const enBs = tr.dataset.usd === "true" ? monto * TASA : monto;
+    pagos.push({ metodo: tr.dataset.metodo, montoBs: Math.round(enBs*100)/100,
+                 referencia: tr.querySelector(".ref").value.trim() });
   });
   if (!pagos.length){ aviso("err","Falta registrar el pago."); return; }
 
-  const { total, cancelado } = recalcular();
+  const { totalBs: total, canceladoBs: cancelado } = recalcular();
   if (cancelado < total && !confirm("El cliente canceló " + bs(cancelado) + " de " + bs(total) +
       ".\nQuedan " + bs(total-cancelado) + " por cobrar.\n\n¿Registrar igual?")) return;
 
@@ -382,7 +449,6 @@ async function registrar(){
       bs(d.montoTotal) + (d.vuelto > 0 ? ". Vuelto: " + bs(d.vuelto) : "."));
     lineas.forEach(l => { const k = clave(l.producto); if (STOCK[k] !== undefined) STOCK[k] -= l.cantidad; });
     document.querySelectorAll("#lineas input, #pagos input").forEach(el => el.value = "");
-    document.querySelectorAll("#pagos select").forEach(el => el.value = "");
     rankingSucio = true; prodSucio = true;
     recalcular();
     document.querySelector("#lineas .prod").focus();
@@ -605,13 +671,21 @@ async function iniciar(){
     $("#tasa").innerHTML = TASA.toLocaleString("es-VE",{minimumFractionDigits:2,maximumFractionDigits:2}) +
       "<small>Bs por dólar</small>";
     $("#lineas").innerHTML = Array.from({length:MAX_LINEAS},(_,i)=>filaProducto(i)).join("");
-    $("#pagos").innerHTML = Array.from({length:FILAS_PAGO},(_,i)=>filaPago(i,d.metodos)).join("");
 
-    document.querySelectorAll("#lineas input, #pagos input, #pagos select")
+    const ordenados = ORDEN_PAGOS.filter(m => d.metodos.some(x => clave(x) === clave(m)))
+      .concat(d.metodos.filter(m => !ORDEN_PAGOS.some(x => clave(x) === clave(m))));
+    $("#pagos").innerHTML = ordenados.map(filaPago).join("");
+
+    const ahora = new Date();
+    $("#fecha").value = ahora.toLocaleDateString("es-VE");
+    $("#hora").value = ahora.toLocaleTimeString("es-VE",{hour:"2-digit",minute:"2-digit"});
+    $("#tr-bs").textContent = dec(TASA);
+
+    document.querySelectorAll("#lineas input, #pagos input")
       .forEach(el => el.addEventListener("input", recalcular));
     document.addEventListener("keydown", e => {
       if (e.key !== "Enter") return;
-      const campos = [...document.querySelectorAll("#lineas input, #pagos select, #pagos input")];
+      const campos = [...document.querySelectorAll("#lineas input, #pagos input")];
       const i = campos.indexOf(document.activeElement);
       if (i > -1 && i < campos.length - 1){ e.preventDefault(); campos[i+1].focus(); }
     });
@@ -630,7 +704,6 @@ async function iniciar(){
 $("#registrar").addEventListener("click", registrar);
 $("#limpiar").addEventListener("click", () => {
   document.querySelectorAll("#lineas input, #pagos input").forEach(el => el.value = "");
-  document.querySelectorAll("#pagos select").forEach(el => el.value = "");
   $("#aviso").hidden = true; recalcular();
   document.querySelector("#lineas .prod").focus();
 });
