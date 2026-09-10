@@ -123,6 +123,21 @@ tr:last-child td{border-bottom:none}
   .mini{width:40px;height:40px} .barra2{grid-column:1 / -1} }
 @media (prefers-reduced-motion:reduce){ .barra2 i{transition:none} }
 .nota{margin-top:1.25rem;font-size:.88rem;color:var(--suave)}
+
+.destacado{background:var(--panel2);border:1px solid var(--borde2);border-left:5px solid var(--oro);
+  padding:1.4rem 1.6rem;margin-bottom:1.75rem;display:grid;grid-template-columns:1fr auto;
+  gap:1rem 2rem;align-items:center}
+.destacado .eti{font-size:.78rem;color:var(--oro);margin:0 0 .2rem}
+.destacado .qué{font-family:var(--display);font-weight:900;font-stretch:118%;letter-spacing:-.025em;
+  font-size:clamp(1.6rem,4vw,2.4rem);line-height:1.05;margin:0}
+.destacado .cat{color:var(--suave);font-size:.9rem;margin:.25rem 0 0}
+.destacado .cifras{text-align:right;font-variant-numeric:tabular-nums}
+.destacado .cifras b{font-family:var(--display);font-weight:900;font-stretch:115%;font-size:1.9rem;
+  letter-spacing:-.02em;color:var(--cielo);display:block;line-height:1}
+.destacado .cifras span{font-size:.9rem;color:var(--suave)}
+@media (max-width:600px){ .destacado{grid-template-columns:1fr} .destacado .cifras{text-align:left} }
+.chip-cat{display:inline-block;font-size:.72rem;color:var(--suave);border:1px solid var(--borde);
+  border-radius:99px;padding:.05rem .5rem;margin-left:.5rem;vertical-align:middle}
 </style>
 </head>
 <body>
@@ -133,6 +148,7 @@ tr:last-child td{border-bottom:none}
     <div class="tabs" role="tablist">
       <button class="tab" role="tab" id="tab-caja" aria-controls="panel-caja" aria-selected="true">Registrar venta</button>
       <button class="tab" role="tab" id="tab-vend" aria-controls="panel-vend" aria-selected="false">Vendedores del mes</button>
+      <button class="tab" role="tab" id="tab-prod" aria-controls="panel-prod" aria-selected="false">Productos</button>
     </div>
   </div>
 </header>
@@ -201,6 +217,23 @@ tr:last-child td{border-bottom:none}
   <p class="nota" id="nota"></p>
 </section>
 
+<!-- ================= PRODUCTOS ================= -->
+<section id="panel-prod" role="tabpanel" aria-labelledby="tab-prod" hidden>
+  <div class="controles">
+    <div class="grupo"><span>Mes</span><div class="pills" id="meses-p" role="group" aria-label="Elegir mes"></div></div>
+    <div class="grupo"><span>Ordenar por</span>
+      <div class="pills" role="group" aria-label="Elegir criterio">
+        <button class="pill" data-mp="cant" aria-pressed="true">Unidades vendidas</button>
+        <button class="pill" data-mp="monto" aria-pressed="false">Dinero generado</button>
+      </div>
+    </div>
+    <div class="grupo"><span>&nbsp;</span><button class="pill" id="refrescar-p">Actualizar</button></div>
+  </div>
+  <div id="destacado"></div>
+  <div class="rank" id="rank-p"></div>
+  <p class="nota" id="nota-p"></p>
+</section>
+
 <datalist id="lista-productos"></datalist>
 </div>
 
@@ -210,7 +243,7 @@ tr:last-child td{border-bottom:none}
    ========================================================================== */
 
 // URL que termina en /exec (Administrar implementaciones → Aplicación web → Copiar)
-const API_URL = "https://script.google.com/macros/s/AKfycbxVsocUtBsIJB54u03leHwI3X9PFCSyjMx6l-dZpNE-zsH-HoMU1Q6By9PDvBz6FlGp/exec";
+const API_URL = "";
 
 // Déjalo vacío mientras EXIGIR_TOKEN sea false en el Apps Script.
 const TOKEN = "";
@@ -241,21 +274,25 @@ const q = () => TOKEN ? "&token=" + encodeURIComponent(TOKEN) : "";
 
 let CATALOGO = {}, STOCK = {}, TASA = 0;
 let RANKING = null, rankingSucio = true;
+let PRODUCTOS = null, prodSucio = true;
 let mesSel = null, criterio = "monto";
+let mesProd = null, criterioProd = "cant";
 
 function aviso(t, txt){ const a = $("#aviso"); a.className = "aviso " + t; a.textContent = txt; a.hidden = false; }
 
 /* ---------------- pestañas ---------------- */
+const PANELES = ["caja", "vend", "prod"];
 function verPestana(cual){
-  const caja = cual === "caja";
-  $("#tab-caja").setAttribute("aria-selected", caja);
-  $("#tab-vend").setAttribute("aria-selected", !caja);
-  $("#panel-caja").hidden = !caja;
-  $("#panel-vend").hidden = caja;
-  if (!caja && rankingSucio) cargarRanking();
+  PANELES.forEach(n => {
+    $("#tab-" + n).setAttribute("aria-selected", n === cual);
+    $("#panel-" + n).hidden = n !== cual;
+  });
+  // Se recarga cada vez que entras a la pestaña, porque las ventas también
+  // se registran desde la hoja y el script no se entera de esas ediciones.
+  if (cual === "vend") cargarRanking(rankingSucio);
+  if (cual === "prod") cargarProductos(prodSucio);
 }
-$("#tab-caja").addEventListener("click", () => verPestana("caja"));
-$("#tab-vend").addEventListener("click", () => verPestana("vend"));
+PANELES.forEach(n => $("#tab-" + n).addEventListener("click", () => verPestana(n)));
 
 /* ---------------- caja ---------------- */
 function filaProducto(i){
@@ -346,7 +383,7 @@ async function registrar(){
     lineas.forEach(l => { const k = clave(l.producto); if (STOCK[k] !== undefined) STOCK[k] -= l.cantidad; });
     document.querySelectorAll("#lineas input, #pagos input").forEach(el => el.value = "");
     document.querySelectorAll("#pagos select").forEach(el => el.value = "");
-    rankingSucio = true;
+    rankingSucio = true; prodSucio = true;
     recalcular();
     document.querySelector("#lineas .prod").focus();
   } catch (err) {
@@ -374,10 +411,11 @@ function etiquetaMes(k){
   return nom.charAt(0).toUpperCase() + nom.slice(1) + " " + a;
 }
 
-async function cargarRanking(){
+async function cargarRanking(forzar){
   try {
     $("#nota").textContent = "Actualizando…";
-    const r = await fetch(API_URL + "?action=ranking" + q());
+    const r = await fetch(API_URL + "?action=ranking" + q() +
+      (forzar ? "&nocache=1" : "") + "&t=" + Date.now());
     const d = await r.json();
     if (!d.ok) throw new Error(d.error);
     RANKING = d.meses; rankingSucio = false;
@@ -455,7 +493,96 @@ document.querySelectorAll(".pill[data-m]").forEach(b => b.addEventListener("clic
   document.querySelectorAll(".pill[data-m]").forEach(x => x.setAttribute("aria-pressed", x.dataset.m === criterio));
   pintarRanking();
 }));
-$("#refrescar").addEventListener("click", cargarRanking);
+$("#refrescar").addEventListener("click", () => cargarRanking(true));
+
+/* ---------------- productos ---------------- */
+async function cargarProductos(forzar){
+  try {
+    $("#nota-p").textContent = "Actualizando…";
+    const r = await fetch(API_URL + "?action=productos" + q() +
+      (forzar ? "&nocache=1" : "") + "&t=" + Date.now());
+    const d = await r.json();
+    if (!d.ok) throw new Error(d.error);
+    PRODUCTOS = d.meses; prodSucio = false;
+    const claves = Object.keys(PRODUCTOS).sort();
+    if (!mesProd || !PRODUCTOS[mesProd]) mesProd = claves[claves.length - 1];
+    $("#meses-p").innerHTML = [...claves, "Acumulado"].map(k =>
+      `<button class="pill" data-mes="${k}" aria-pressed="${k === mesProd}">${etiquetaMes(k)}</button>`).join("");
+    pintarProductos();
+  } catch (err) {
+    $("#nota-p").textContent = "No se pudieron leer los productos: " + err.message;
+  }
+}
+
+function acumuladoProd(){
+  const t = {};
+  Object.values(PRODUCTOS).forEach(mes => mes.forEach(([n,c,m,cat]) => {
+    const k = clave(n);
+    if (!t[k]) t[k] = [n, 0, 0, cat];
+    t[k][1] += c; t[k][2] += m;
+  }));
+  return Object.values(t).map(([n,c,m,cat]) => [n, c, Math.round(m*100)/100, cat]);
+}
+
+function pintarProductos(){
+  if (!PRODUCTOS) return;
+  const base = mesProd === "Acumulado" ? acumuladoProd() : (PRODUCTOS[mesProd] || []);
+  const filas = base.map(([n,c,m,cat]) => ({n, c, m, cat}))
+    .filter(p => p.c > 0 || p.m > 0)
+    .sort((a,b) => criterioProd === "cant" ? b.c - a.c : b.m - a.m);
+
+  if (!filas.length){
+    $("#destacado").innerHTML = ""; $("#rank-p").innerHTML = "";
+    $("#nota-p").textContent = "Sin ventas registradas en " + etiquetaMes(mesProd) + ".";
+    return;
+  }
+
+  const val = p => criterioProd === "cant" ? p.c : p.m;
+  const uds = c => c.toLocaleString("es-VE") + (c === 1 ? " unidad" : " unidades");
+  const top = filas[0];
+
+  $("#destacado").innerHTML = `<div>
+      <p class="eti">Lo más vendido en ${etiquetaMes(mesProd)}</p>
+      <p class="qué">${top.n}</p>
+      ${top.cat ? `<p class="cat">${top.cat}</p>` : ""}
+    </div>
+    <div class="cifras">
+      <b>${criterioProd === "cant" ? top.c.toLocaleString("es-VE") : bs(top.m)}</b>
+      <span>${criterioProd === "cant" ? (top.c === 1 ? "unidad" : "unidades") + " · " + bs(top.m)
+                                      : uds(top.c)}</span>
+    </div>`;
+
+  const max = val(top) || 1;
+  $("#rank-p").innerHTML = filas.map((p,i) => `
+    <div class="fila${i===0?" top":""}" style="grid-template-columns:2rem minmax(120px,1fr) minmax(0,2.4fr) auto">
+      <span class="pos">${i+1}</span>
+      <span class="quien">${p.n}${p.cat ? `<span class="chip-cat">${p.cat}</span>` : ""}</span>
+      <span class="barra2"><i data-w="${(val(p)/max*100).toFixed(1)}"></i></span>
+      <span class="cifra">${criterioProd === "cant"
+        ? uds(p.c) + "<small>" + bs(p.m) + "</small>"
+        : bs(p.m) + "<small>" + uds(p.c) + "</small>"}</span></div>`).join("");
+
+  requestAnimationFrame(() =>
+    document.querySelectorAll("#rank-p .barra2 i").forEach(b => b.style.width = b.dataset.w + "%"));
+
+  const tot = filas.reduce((s,p) => s + p.m, 0);
+  const un = filas.reduce((s,p) => s + p.c, 0);
+  $("#nota-p").textContent = etiquetaMes(mesProd) + ": " + un.toLocaleString("es-VE") +
+    " unidades de " + filas.length + " productos distintos, " + bs(tot) + " en total.";
+}
+
+$("#meses-p").addEventListener("click", e => {
+  const b = e.target.closest(".pill"); if (!b) return;
+  mesProd = b.dataset.mes;
+  document.querySelectorAll("#meses-p .pill").forEach(x => x.setAttribute("aria-pressed", x.dataset.mes === mesProd));
+  pintarProductos();
+});
+document.querySelectorAll(".pill[data-mp]").forEach(b => b.addEventListener("click", () => {
+  criterioProd = b.dataset.mp;
+  document.querySelectorAll(".pill[data-mp]").forEach(x => x.setAttribute("aria-pressed", x.dataset.mp === criterioProd));
+  pintarProductos();
+}));
+$("#refrescar-p").addEventListener("click", () => cargarProductos(true));
 
 /* ---------------- arranque ---------------- */
 async function iniciar(){
